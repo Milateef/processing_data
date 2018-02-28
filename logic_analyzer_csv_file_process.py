@@ -120,15 +120,15 @@ with open(file_name, 'r') as csv_file:      # open csv file
                 if row[IO_index] != '78' and not (row[we_index] == we and row[cle_index] == cle and row[ale_index] == ale):
                     flag = 0
                     count = 0       # restore counter
-                    intermediate_f.write(row[time_index][:-4] + '\tCMD\t' + row[IO_index] + '\n')
+                    intermediate_f.write(str(int(row[time_index]) // 1000) + '\tCMD\t' + row[IO_index] + '\n')
 
             if row[we_index] == '1' and row[ale_index] == '1':      # filter Addr row
-                # if the Addr row isn't for cmd 78h, and WE, CLE, ALE are not all equal to last row, then print out this row
+                # if the Addr row isn't belong to cmd 78h, and WE, CLE, ALE are not all equal to last row, then print out this row
                 if flag == 0 and not (row[we_index] == we and row[cle_index] == cle and row[ale_index] == ale):
                     count = count + 1
                     # when count = 1, we need write a begining "Addr"
                     if count == 1:
-                        intermediate_f.write(row[time_index][:-4] + '\tAddr\t' + row[IO_index])
+                        intermediate_f.write(str(int(row[time_index]) // 1000) + '\tAddr\t' + row[IO_index])
                     # when count = 5, we need write a ending "die0 \n"
                     elif count == 5:
                         die_addr = (int(row[IO_index], 16) >> 4) & die_addr_mask   # calculate die addr
