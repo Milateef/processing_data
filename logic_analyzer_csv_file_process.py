@@ -1,11 +1,21 @@
 import csv
+import os
 
-file_name = 'C:/Users/40038/Desktop/t7.csv'     # the file we want to process
-file_intermediate = 'C:/Users/40038/Desktop/intermediate.txt'
-file_result = 'C:/Users/40038/Desktop/result.txt'
+# the file we want to process, the path is user-defined
+file_name = input("Please input the file you want to process: \n")
+# if the file user input is not exist, input again
+while True:
+    if os.path.exists(file_name):
+        break
+    else:
+        file_name = input("Can't find this file, Please input the right path and file name: \n")
+file_name_path = os.path.dirname(file_name)
+
+# the result file, the path is user-defined
+file_result = file_name_path + '/result.txt'
 
 # ---------------------above are all files---------------------------
-
+file_intermediate = 'C:/intermediate.txt'       # the intermediate file during code runing. we don't need care about it
 flag = 0        # flag of cmd == 78
 count = 0       # counter using for recognize die addr
 colomn_index = 0    # counter using for recognize which colomn is IO, WE, CLE, ALE...
@@ -203,5 +213,7 @@ with open(file_intermediate, 'r') as intermediate_f:    # open the intermediate 
 
     result_f.close()        # close result file
 intermediate_f.close()      # close intermediate file
+
+os.remove("C:/intermediate.txt")
 
 # ---------------------above are procesing the intermediate file--------------------------
