@@ -4,6 +4,33 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
 
+# the intermediate file during code runing. we don't need care about it
+file_intermediate = 'C:/intermediate.txt'
+flag = 0        # flag of cmd == 78
+count = 0       # counter using for recognize die addr
+colomn_index = 0    # counter using for recognize which colomn is IO, WE, CLE, ALE...
+
+die_addr = 0    # die addr
+die_addr_mask = 0b111   # die addr mask
+
+we = ''         # store the value of WE of last row
+cle = ''        # store the value of CLE of last row
+ale = ''        # store the value of ALE of last row
+
+IO_index = 0    # the colomn number of IO
+we_index = 0    # the colomn number of WE
+cle_index = 0   # the colomn number of CLE
+ale_index = 0   # the colomn number of ALE
+time_index = 0  # the colomn number of time
+header_group = {'IO': IO_index, 'WE': we_index, 'CLE': cle_index, 'ALE': ale_index, 'Time': time_index}
+
+is_sig_cmd = True       # flag of prefix cmd
+is_tri_cmd = True       # flag of 2P Operation
+is_bi_cmd = True        # flag of 1P Operation
+lst_cmd_adjacent = []   # a list to store the adjacent cmd
+
+# ---------------------above are all variables---------------------------
+
 root = Tk()
 explanation = "Pyky: One Click, Do Everything"
 root.title("UI")
@@ -36,7 +63,7 @@ def process_data():
     colomn_index = 0    # counter using for recognize which colomn is IO, WE, CLE, ALE...
 
     die_addr = 0    # die addr
-    die_addr_mask = 7   # die addr mask
+ #   die_addr_mask = 7   # die addr mask
 
     we = ''         # store the value of WE of last row
     cle = ''        # store the value of CLE of last row
@@ -165,7 +192,7 @@ def process_data():
                                 intermediate_f.write(str(int(row[time_index]) // 1000) + '\tAddr\t' + row[IO_index])
                             # when count = 5, we need write a ending "die0 \n"
                             elif count == 5:
-                                die_addr = (int(row[IO_index], 16) >> 4) & die_addr_mask   # calculate die addr
+                                die_addr = (int(row[IO_index], 16) >> die_addr_offset.get()) & die_addr_mask   # calculate die addr
                                 intermediate_f.write('\t' + row[IO_index] + '\tdie' + str(die_addr) + '\n')
 
                             else:
@@ -238,12 +265,40 @@ def process_data():
 
         result_f.close()        # close result file
     intermediate_f.close()      # close intermediate file
-
     os.remove("C:/intermediate.txt")
     # ---------------------above are procesing the intermediate file--------------------------
 
-
 Label(root, text="").grid(row=2)
+die_addr_offset = IntVar()   # die addr mask
+Radiobutton(
+    root,
+    text="Die address represent by IO[5:7]",
+    font='Helvetica 10 bold',
+    bg='DarkKhaki',
+    width=50,
+    variable=die_addr_offset,
+    value=5).grid(row=3)
+
+Radiobutton(
+    root,
+    text="Die address represent by IO[4:6]",
+    font='Helvetica 10 bold',
+    bg='DarkKhaki',
+    width=50,
+    variable=die_addr_offset,
+    value=4).grid(row=4)
+    
+Radiobutton(
+    root,
+    text="Die address represent by IO[3:5]",
+    font='Helvetica 10 bold',
+    bg='DarkKhaki',
+    width=50,
+    variable=die_addr_offset,
+    value=3).grid(row=5)
+
+Label(root, text="").grid(row=6)
+
 Button(
     root,
     text='Select a csv File',
@@ -255,9 +310,9 @@ Button(
     width=25,
     height=3,
     command=process_data,
-    compound=BOTTOM).grid(row=3)
+    compound=BOTTOM).grid(row=7)
 
-Label(root, text="").grid(row=4)
+Label(root, text="").grid(row=8)
 
 Button(
     root,
@@ -269,7 +324,8 @@ Button(
     pady=10,
     width=25,
     height=3,
-    command=root.destroy).grid(row=5)
+    command=root.destroy).grid(row=9)
 
-Label(root, text="").grid(row=6)
+Label(root, text="").grid(row=10)
+
 mainloop()
