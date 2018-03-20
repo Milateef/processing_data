@@ -112,6 +112,8 @@ for source_file_name in file_list:
                 #     shmoo_point_list = line_of_sf.rstrip().split(',')
             
         sf.close()
+
 del_sheet = wb.get_sheet_by_name('Sheet')
-wb.remove_sheet(del_sheet)   
+wb.remove_sheet(del_sheet)
+   
 wb.save('test.xlsx')
