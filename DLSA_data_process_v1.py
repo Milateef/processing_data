@@ -8,6 +8,23 @@ file_list = os.listdir(current_dir)
 SDE_margin = {}
 VDD_margin = {}
 VDDSA_margin = {}
+
+SDE_DAC = []
+VDD_DAC = []
+VDDSA_DAC = []
+SDE_shmoo_step = 2
+pattern_flag = 0
+
+for i in range(0x3F, 0x00, -SDE_shmoo_step):
+    SDE_DAC.append(i)
+
+for i in range(0xF, 0x00, -1):
+    VDD_DAC.append(i)
+    VDDSA_DAC.append(i)
+
+SDE_DAC.append(0x00)
+VDD_DAC.append(0x00)
+VDDSA_DAC.append(0x00)
 # fill cell with red
 redFill = PatternFill(
     start_color='00FF9999',
@@ -20,11 +37,17 @@ greenFill = PatternFill(
     end_color='0099FF99',
     fill_type='solid'
 )
+# fill cell with yellow
+yellowFill = PatternFill(
+    start_color='00FFFF33',
+    end_color='00FFFF33',
+    fill_type='solid'
+)
 
 
-def get_index(whole_str, sub_str):
+def get_index(whole, sub):
     try:
-        index = whole_str.index(sub_str)
+        index = whole.index(sub)
         return index
     except Exception:
         return -1
@@ -48,7 +71,7 @@ wb = Workbook()
 
 for source_file_name in file_list:
 
-    if 'tb_DLSA_Test_SDE' in source_file_name:
+    if 'tb_DLSA_Test_SDE' in source_file_name and 'DUT' in source_file_name:
         with open(source_file_name, 'r') as sf:
 
             start_index = source_file_name.index('SDE')
@@ -70,10 +93,21 @@ for source_file_name in file_list:
 
                 if 'SDE' in value:
                     SDE_default = value.split('=')[-1]
+                    try_SDE_index = get_index(SDE_DAC, int(SDE_default, 16))
+                    if try_SDE_index != -1:
+                        def_SDE_index = try_SDE_index
+                    else:
+                        def_SDE_index = get_index(
+                            SDE_DAC, int(SDE_default, 16) - 1)
+
                 elif 'VDD' in value and 'VDDSA' not in value:
                     VDD_default = value.split('=')[-1]
+                    def_VDD_index = get_index(VDD_DAC, int(VDD_default, 16))
+
                 elif 'VDDSA' in value:
                     VDDSA_default = value.split('=')[-1]
+                    def_VDDSA_index = get_index(
+                        VDDSA_DAC, int(VDDSA_default, 16))
 
             row_num = 1
 
@@ -81,6 +115,7 @@ for source_file_name in file_list:
 
                 if 'Pattern' in line_of_sf:
                     pattern = line_of_sf.split(' ')[1]
+                    pattern_flag = 1
 
                 line_split_list = line_of_sf.rstrip().split(',')
                 """
@@ -92,7 +127,6 @@ for source_file_name in file_list:
                         VDD_default_column = VDD_default_column + 1
                 """
                 column_num = 1
-
                 for cell_value in line_split_list:
 
                     cell_num_value = str_to_num(cell_value)
@@ -105,6 +139,18 @@ for source_file_name in file_list:
                         else:
                             ws.cell(row=row_num,
                                     column=column_num).fill = greenFill
+                        if pattern_flag == 1:
+                            pattern_flag = 0
+                            first_row = row_num
+                            first_col = column_num
+                        if 'VDDSA' in source_file_name and 'DUT' in source_file_name:
+                            if (row_num - first_row) == def_SDE_index and (column_num - first_col) == def_VDDSA_index:
+                                ws.cell(row=row_num,
+                                        column=column_num).fill = yellowFill
+                        elif 'VDD' in source_file_name and 'DUT' in source_file_name:
+                            if (row_num - first_row) == def_SDE_index and (column_num - first_col) == def_VDD_index:
+                                ws.cell(row=row_num,
+                                        column=column_num).fill = yellowFill
                     else:
                         ws.cell(row=row_num, column=column_num,
                                 value=cell_value)
@@ -115,7 +161,6 @@ for source_file_name in file_list:
 
                 # if 'SDE' in line_of_sf:
                 #     shmoo_point_list = line_of_sf.rstrip().split(',')
-
         sf.close()
 
 del_sheet = wb.get_sheet_by_name('Sheet')
