@@ -18,6 +18,10 @@ VDDSA_DAC = []
 SDE_shmoo_step = 2
 pattern_flag = 0
 
+SDE_default_list = []
+VDD_default_list = []
+VDDSA_default_list = []
+
 for i in range(0x3F, 0x00, -SDE_shmoo_step):
     SDE_DAC.append(i)
 
@@ -220,18 +224,18 @@ for source_file_name in file_list:
                     VCC_flag = 0
 
                     for index in range(0, len(SDE_header)):
-                        ws.cell(row=row_num+1+index,
+                        ws.cell(row=row_num + 1 + index,
                                 column=1).value = SDE_header[index]
                     if 'VDDSA' in source_file_name:
                         ws.cell(row=row_num, column=1).value = 'VDDSA='
-                        for index in range(0, len(VDDSA_header)-1):
+                        for index in range(0, len(VDDSA_header) - 1):
                             ws.cell(row=row_num, column=index +
-                                    2).value = VDDSA_header[index+1]
+                                    2).value = VDDSA_header[index + 1]
                     elif 'VDD' in source_file_name:
                         ws.cell(row=row_num, column=1).value = 'VDD='
-                        for index in range(0, len(VDD_header)-1):
+                        for index in range(0, len(VDD_header) - 1):
                             ws.cell(row=row_num, column=index +
-                                    2).value = VDD_header[index+1]
+                                    2).value = VDD_header[index + 1]
 
 
 del_sheet = wb.get_sheet_by_name('Sheet')
