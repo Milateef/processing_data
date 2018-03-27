@@ -1,33 +1,34 @@
-from openpyxl import Workbook
+from openpyxl import Workbook   # import module
 from openpyxl.styles import PatternFill
 import os
 
-current_dir = os.getcwd()
-file_list = os.listdir(current_dir)
+current_dir = os.getcwd()   # get current directory
+file_list = os.listdir(current_dir)  # list file under dir
 
-SDE_header = []
-VDD_header = []
-VDDSA_header = []
-VDD_flag = 0
-VDDSA_flag = 0
-VCC_flag = 0
+SDE_header = []     # store SDE=0x**()... for total dut
+VDD_header = []     # store VDD=0x**()...
+VDDSA_header = []   # store VDDSA=0x**()...
+VDD_flag = 0        # represent this file is VDD vs SDE
+VDDSA_flag = 0      # represent this file is VDDSA vs SDE
+VCC_flag = 0        # when encouner VCC, then insert a row. for total dut file
 
-SDE_DAC = []
-VDD_DAC = []
-VDDSA_DAC = []
-SDE_shmoo_step = 2
+SDE_DAC = []        # store SDE shmoo value
+VDD_DAC = []        # store VDD shmoo value
+VDDSA_DAC = []      # store VDDSA shmoo value
+SDE_shmoo_step = 2  # SDE shmoo step
+# when the value = 1, then find the default SDE and VDD or VDDSA and highlight
 pattern_flag = 0
 
-SDE_default_list = []
-VDD_default_list = []
-VDDSA_default_list = []
+SDE_default_list = []       # store SDE default value of each dut
+VDD_default_list = []       # store VDD default value of each dut
+VDDSA_default_list = []     # store VDDSA default value of each dut
 
 for i in range(0x3F, 0x00, -SDE_shmoo_step):
-    SDE_DAC.append(i)
+    SDE_DAC.append(i)       # generate SDE_DAC
 
 for i in range(0xF, 0x00, -1):
     VDD_DAC.append(i)
-    VDDSA_DAC.append(i)
+    VDDSA_DAC.append(i)     # generate VDD_DAC and VDDSA_DAC
 
 SDE_DAC.append(0x00)
 VDD_DAC.append(0x00)
@@ -52,6 +53,7 @@ yellowFill = PatternFill(
 )
 
 
+# get index of a sub string, reture -1 if when whole string didn't include sub string
 def get_index(whole, sub):
     try:
         index = whole.index(sub)
@@ -60,6 +62,7 @@ def get_index(whole, sub):
         return -1
 
 
+# invert str to num, both intger and hexdecimal. return -1 when the str can't be inverted
 def str_to_num(original_str):
     try:
         inverted_num = int(original_str)
@@ -74,7 +77,8 @@ def str_to_num(original_str):
     return inverted_num
 
 
-wb = Workbook()
+print("This process takes a couple of seconds... ...")
+wb = Workbook()         # create workbook
 
 for source_file_name in file_list:
 
@@ -93,22 +97,28 @@ for source_file_name in file_list:
             for value in default_values:
 
                 if 'SDE' in value:
-                    SDE_default = value.split('=')[-1]
-                    try_SDE_index = get_index(SDE_DAC, int(SDE_default, 16))
+                    # SDE_default = value.split('=')[-1]
+                    SDE_default_list.append(value.split('=')[-1])
+                    # try_SDE_index = get_index(SDE_DAC, int(SDE_default, 16))
+                    try_SDE_index = get_index(
+                        SDE_DAC, int(SDE_default_list[-1], 16))
                     if try_SDE_index != -1:
                         def_SDE_index = try_SDE_index
                     else:
                         def_SDE_index = get_index(
-                            SDE_DAC, int(SDE_default, 16) - 1)
+                            SDE_DAC, int(SDE_default_list[-1], 16) - 1)
 
                 elif 'VDD' in value and 'VDDSA' not in value:
-                    VDD_default = value.split('=')[-1]
-                    def_VDD_index = get_index(VDD_DAC, int(VDD_default, 16))
+                    # VDD_default = value.split('=')[-1]
+                    VDD_default_list.append(value.split('=')[-1])
+                    def_VDD_index = get_index(
+                        VDD_DAC, int(VDD_default_list[-1], 16))
 
                 elif 'VDDSA' in value:
-                    VDDSA_default = value.split('=')[-1]
+                    # VDDSA_default = value.split('=')[-1]
+                    VDDSA_default_list.append(value.split('=')[-1])
                     def_VDDSA_index = get_index(
-                        VDDSA_DAC, int(VDDSA_default, 16))
+                        VDDSA_DAC, int(VDDSA_default_list[-1], 16))
 
             row_num = 1
 
@@ -193,6 +203,10 @@ for source_file_name in file_list:
 
             row_num = 1
             for line_of_sf in sf:
+
+                if 'Vcc' in line_of_sf:
+                    VCC_flag = 1
+
                 line_split_list = line_of_sf.rstrip().split(',')
                 column_num = 1
                 for cell_value in line_split_list:
@@ -206,9 +220,24 @@ for source_file_name in file_list:
                         else:
                             ws.cell(row=row_num,
                                     column=column_num).fill = greenFill
+                        if VCC_flag == 1:
+                            VCC_flag = 0
+                            first_row = row_num
+                            first_col = column_num
+
+                        for i in range(0, len(SDE_default_list)):
+                            if 'VDDSA' in source_file_name:
+                                if (row_num - first_row) == get_index(SDE_DAC, int(SDE_default_list[i], 16)) and (column_num - first_col) == get_index(VDDSA_DAC, int(VDDSA_default_list[i], 16)):
+                                    ws.cell(row=row_num,
+                                            column=column_num).fill = yellowFill
+                            elif 'VDD' in source_file_name:
+                                if (row_num - first_row) == get_index(SDE_DAC, int(SDE_default_list[i], 16)) and (column_num - first_col) == get_index(VDD_DAC, int(VDD_default_list[i], 16)):
+                                    ws.cell(row=row_num,
+                                            column=column_num).fill = yellowFill
                     else:
                         ws.cell(row=row_num, column=column_num,
                                 value=cell_value)
+
                     column_num = column_num + 1
                 row_num = row_num + 1
             end_row = row_num
@@ -238,7 +267,8 @@ for source_file_name in file_list:
                                     2).value = VDD_header[index + 1]
 
 
-del_sheet = wb.get_sheet_by_name('Sheet')
-wb.remove_sheet(del_sheet)
+del_sheet = wb['Sheet']
+wb.remove(del_sheet)
 
-wb.save('test.xlsx')
+wb.save('result.xlsx')
+print("It's done!")
