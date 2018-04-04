@@ -33,7 +33,7 @@ for i in range(0xF, 0x00, -1):
     VDD_DAC.append(i)
     VDDSA_DAC.append(i)     # generate VDD_DAC and VDDSA_DAC
 
-SDE_DAC.append(0x00)
+# SDE_DAC.append(0x00)      # don't need this
 VDD_DAC.append(0x00)
 VDDSA_DAC.append(0x00)
 # fill cell with red
