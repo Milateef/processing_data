@@ -115,7 +115,7 @@ for source_file_name in file_list:      # loop the files in current dir
                     def_VDDSA_index = get_index(
                         VDDSA_DAC, int(VDDSA_default_list[-1], 16))
 
-                elif 'VDD' in value and 'VDD' not in source_file_name:
+                elif 'VDD' in value and 'VDD' in source_file_name:
                     VDD_default_list.append(value.split('=')[-1])
                     def_VDD_index = get_index(
                         VDD_DAC, int(VDD_default_list[-1], 16))
