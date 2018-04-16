@@ -98,7 +98,7 @@ for source_file_name in file_list:      # loop the files in current dir
             default_values = sf.readline().rstrip().split(',')
             for value in default_values:
 
-                if 'SDE' in value:
+                if 'SDE' in value and 'VDDSA' in source_file_name:
                     SDE_default_list.append(value.split('=')[-1])
                     try_SDE_index = get_index(
                         SDE_DAC, int(SDE_default_list[-1], 16))
@@ -110,15 +110,15 @@ for source_file_name in file_list:      # loop the files in current dir
                         def_SDE_index = get_index(
                             SDE_DAC, int(SDE_default_list[-1], 16) - 1)
 
-                elif 'VDD' in value and 'VDDSA' not in value:
-                    VDD_default_list.append(value.split('=')[-1])
-                    def_VDD_index = get_index(
-                        VDD_DAC, int(VDD_default_list[-1], 16))
-
-                elif 'VDDSA' in value:
+                elif 'VDDSA' in value and 'VDDSA' in source_file_name:
                     VDDSA_default_list.append(value.split('=')[-1])
                     def_VDDSA_index = get_index(
                         VDDSA_DAC, int(VDDSA_default_list[-1], 16))
+
+                elif 'VDD' in value and 'VDD' not in source_file_name:
+                    VDD_default_list.append(value.split('=')[-1])
+                    def_VDD_index = get_index(
+                        VDD_DAC, int(VDD_default_list[-1], 16))
 
             row_num = 1     # count the row number
 
