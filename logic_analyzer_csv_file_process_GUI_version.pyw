@@ -4,11 +4,10 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
 
-# the intermediate file during code runing. we don't need care about it
-file_intermediate = 'C:/intermediate.txt'
 flag = 0        # flag of cmd == 78
 count = 0       # counter using for recognize die addr
-colomn_index = 0    # counter using for recognize which colomn is IO, WE, CLE, ALE...
+# counter using for recognize which colomn is IO, WE, CLE, ALE...
+colomn_index = 0
 
 die_addr = 0    # die addr
 die_addr_mask = 0b111   # die addr mask
@@ -22,7 +21,8 @@ we_index = 0    # the colomn number of WE
 cle_index = 0   # the colomn number of CLE
 ale_index = 0   # the colomn number of ALE
 time_index = 0  # the colomn number of time
-header_group = {'IO': IO_index, 'WE': we_index, 'CLE': cle_index, 'ALE': ale_index, 'Time': time_index}
+header_group = {'IO': IO_index, 'WE': we_index,
+                'CLE': cle_index, 'ALE': ale_index, 'Time': time_index}
 
 is_sig_cmd = True       # flag of prefix cmd
 is_tri_cmd = True       # flag of 2P Operation
@@ -60,7 +60,8 @@ def process_data():
     file_intermediate = 'C:/intermediate.txt'
     flag = 0        # flag of cmd == 78
     count = 0       # counter using for recognize die addr
-    colomn_index = 0    # counter using for recognize which colomn is IO, WE, CLE, ALE...
+    # counter using for recognize which colomn is IO, WE, CLE, ALE...
+    colomn_index = 0
 
     die_addr = 0    # die addr
  #   die_addr_mask = 7   # die addr mask
@@ -74,7 +75,8 @@ def process_data():
     cle_index = 0   # the colomn number of CLE
     ale_index = 0   # the colomn number of ALE
     time_index = 0  # the colomn number of time
-    header_group = {'IO': IO_index, 'WE': we_index, 'CLE': cle_index, 'ALE': ale_index, 'Time': time_index}
+    header_group = {'IO': IO_index, 'WE': we_index,
+                    'CLE': cle_index, 'ALE': ale_index, 'Time': time_index}
 
     is_sig_cmd = True       # flag of prefix cmd
     is_tri_cmd = True       # flag of 2P Operation
@@ -133,6 +135,8 @@ def process_data():
 
         file_name_path = os.path.dirname(file_name)
 
+        # the intermediate file during code runing. we don't need care about it
+        file_intermediate = file_name_path + '/intermediate.txt'
         # the result file, the path is user-defined
         file_result = file_name_path + '/result.txt'
 
@@ -168,7 +172,8 @@ def process_data():
         with open(file_name, 'r') as csv_file:      # open csv file
 
             reader = csv.reader(csv_file)           # generate reader object
-            intermediate_f = open(file_intermediate, 'w')       # open another file to store the result
+            # open another file to store the result
+            intermediate_f = open(file_intermediate, 'w')
 
             for row in reader:                     # loop the reader by row
                 if len(row) > 5:
@@ -181,7 +186,8 @@ def process_data():
                         if row[IO_index] != '78' and not (row[we_index] == we and row[cle_index] == cle and row[ale_index] == ale):
                             flag = 0
                             count = 0       # restore counter
-                            intermediate_f.write(str(int(row[time_index]) // 1000) + '\tCMD\t' + row[IO_index] + '\n')
+                            intermediate_f.write(
+                                str(int(row[time_index]) // 1000) + '\tCMD\t' + row[IO_index] + '\n')
 
                     if row[we_index] == '1' and row[ale_index] == '1':      # filter Addr row
                         # if the Addr row isn't belong to cmd 78h, and WE, CLE, ALE are not all equal to last row, then print out this row
@@ -189,11 +195,15 @@ def process_data():
                             count = count + 1
                             # when count = 1, we need write a begining "Addr"
                             if count == 1:
-                                intermediate_f.write(str(int(row[time_index]) // 1000) + '\tAddr\t' + row[IO_index])
+                                intermediate_f.write(
+                                    str(int(row[time_index]) // 1000) + '\tAddr\t' + row[IO_index])
                             # when count = 5, we need write a ending "die0 \n"
                             elif count == 5:
-                                die_addr = (int(row[IO_index], 16) >> die_addr_offset.get()) & die_addr_mask   # calculate die addr
-                                intermediate_f.write('\t' + row[IO_index] + '\tdie' + str(die_addr) + '\n')
+                                # calculate die addr
+                                die_addr = (
+                                    int(row[IO_index], 16) >> die_addr_offset.get()) & die_addr_mask
+                                intermediate_f.write(
+                                    '\t' + row[IO_index] + '\tdie' + str(die_addr) + '\n')
 
                             else:
                                 intermediate_f.write('\t' + row[IO_index])
@@ -265,8 +275,9 @@ def process_data():
 
         result_f.close()        # close result file
     intermediate_f.close()      # close intermediate file
-    os.remove("C:/intermediate.txt")
+    os.remove(file_intermediate)
     # ---------------------above are procesing the intermediate file--------------------------
+
 
 Label(root, text="").grid(row=2)
 die_addr_offset = IntVar()   # die addr mask
@@ -287,7 +298,7 @@ Radiobutton(
     width=50,
     variable=die_addr_offset,
     value=4).grid(row=4)
-    
+
 Radiobutton(
     root,
     text="Die address represent by IO[3:5]",
