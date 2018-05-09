@@ -25,6 +25,9 @@ pattern_flag = 0
 SDE_default_list = []       # store SDE default value of each dut
 VDD_default_list = []       # store VDD default value of each dut
 VDDSA_default_list = []     # store VDDSA default value of each dut
+def_SDE_index_list = []     # store SDE default index of each dut
+def_VDD_index_list = []     # store VDD default index of each dut
+def_VDDSA_index_list = []   # store VDDSA default index of each dut
 
 for i in range(0x3F, 0x00, -SDE_shmoo_step):
     SDE_DAC.append(i)       # generate SDE_DAC
@@ -109,16 +112,20 @@ for source_file_name in file_list:      # loop the files in current dir
                     else:
                         def_SDE_index = get_index(
                             SDE_DAC, int(SDE_default_list[-1], 16) - 1)
+                    
+                    def_SDE_index_list.append(def_SDE_index)
 
                 elif 'VDDSA' in value and 'VDDSA' in source_file_name:
                     VDDSA_default_list.append(value.split('=')[-1])
                     def_VDDSA_index = get_index(
                         VDDSA_DAC, int(VDDSA_default_list[-1], 16))
+                    def_VDDSA_index_list.append(def_VDDSA_index)
 
-                elif 'VDD' in value and 'VDD' in source_file_name:
+                elif 'VDD' in value and 'VDDSA' not in value and 'VDD' in source_file_name and 'VDDSA' not in source_file_name:
                     VDD_default_list.append(value.split('=')[-1])
                     def_VDD_index = get_index(
                         VDD_DAC, int(VDD_default_list[-1], 16))
+                    def_VDD_index_list.append(def_VDD_index)
 
             row_num = 1     # count the row number
 
@@ -239,12 +246,12 @@ for source_file_name in file_list:  # loop the all DUT file
                         for i in range(0, len(SDE_default_list)):
 
                             if 'VDDSA' in source_file_name:
-                                if (row_num - first_row) == get_index(SDE_DAC, int(SDE_default_list[i], 16)) and (column_num - first_col) == get_index(VDDSA_DAC, int(VDDSA_default_list[i], 16)):
+                                if (row_num - first_row) == def_SDE_index_list[i] and (column_num - first_col) == def_VDDSA_index_list[i]:
                                     ws.cell(row=row_num,
                                             column=column_num).fill = yellowFill
 
                             elif 'VDD' in source_file_name:
-                                if (row_num - first_row) == get_index(SDE_DAC, int(SDE_default_list[i], 16)) and (column_num - first_col) == get_index(VDD_DAC, int(VDD_default_list[i], 16)):
+                                if (row_num - first_row) == def_SDE_index_list[i] and (column_num - first_col) == def_VDD_index_list[i]:
                                     ws.cell(row=row_num,
                                             column=column_num).fill = yellowFill
 
